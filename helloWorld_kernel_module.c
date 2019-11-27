@@ -18,8 +18,10 @@ struct page*p1=NULL;
 
 MODULE_LICENSE("Dual BSD/GPL");//Special macro which is also function internally is used to tell the  kernel that this modulebears free licence
 MODULE_AUTHOR("Dishant Patel");
-static int __init load(void){
-
+static int __init load(void){   //__init keyowrd is used so,this function is stored in the .init section of system space
+                                //function stored inside the init section can be freed  once the module is loaded
+                                //And if we don't use the __init keyword it cannot be freed or removed even when the module
+                               //is loaded.
 int local_var1=0;//This variable will be stored in the system stack
 
 dump_stack(); // function which will give you a call trace of system stack for the debug purpose
