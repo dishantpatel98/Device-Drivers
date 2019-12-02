@@ -1,0 +1,100 @@
+- there is a core component/static kernel module, 
+  in the kernel 
+  known as "device core module" - this "device core" deals
+  with the "core management services" of devices, 
+  drivers, and buses/bus types
+--->this device core module's model/design is known 
+    as Linux device driver model 
+    
+The primary purpose of this model is to maintain internal data structures that reflect the state and structure of the system. Such information includes what devices are in the system, how they are in terms of power management, what bus they are attached to, what drivers they have, along with the structure of the buses, devices, drivers in the system.    
+
+To maintain this information, the kernel uses the following entities:
+
+        device - a physical device that is attached to a bus
+        driver - a software entity that can be associated with a device and performs operations with it
+        bus - a device to which other devices can be attached
+        class - a type of device that has a similar behavior; There is a class for discs, partitions, serial ports, etc.
+        subsystem - a view on the structure of the system; Kernel subsystems include devices (hierarchical view of all devices in the system), buses (bus view of devices according to how they are attached to buses), classes, etc.
+
+
+The kernel provides a representation of its model in userspace through the sysfs virtual file system. It is usually mounted in the /sys directory and contains the following subdirectories:
+
+        block - all block devices available in the system (disks, partitions)
+        bus - types of bus to which physical devices are connected (pci, ide, usb)
+        class - drivers classes that are available in the system (net, sound, usb)
+        devices - the hierarchical structure of devices connected to the system
+        firmware - information from system firmware (ACPI)
+        fs - information about mounted file systems
+        kernel - kernel status information (logged-in users, hotplug)
+        modules - the list of modules currently loaded
+        power - information related to the power management subsystem
+
+The kernel device model can work without the sysfs file system, but the reciprocal is not true.
+
+
+Linux Device Model provides a number of structures to ensure the interaction between a hardware device and a device driver. The whole model is based on kobject structure. With this structure, hierarchies are built and the following structures are implemented:
+
+-->structure bus_type
+-->struct device
+-->struct device_driver
+
+What is kobject?
+-->A kobject structure does not perform a single function. Such a structure is usually integrated into a larger structure. A kobject structure actually incorporates a set of features that will be offered to a higher abstraction object in the Linux Device Model hierarchy.
+
+
+struct cdev {
+        struct kobject kobj ;
+        struct module * owner ;
+        const struct file_operations * ops ;
+        struct list_head list ;
+        dev_t dev ;
+        unsigned int count ;
+} ;
+
+Note that this structure includes a kobject structure field.
+
+As we can see, the kobject structures are in a hierarchy : an object has a parent and holds a kset member, which contains objects on the same level.
+
+-->"linux device core" has "low-level features
+  and high-level features" - corresponding 
+  system objects/services/system APIs/frame-works
+  exist
+
+
+---->following a quick summary of device model's
+     role, in the kernel :
+
+     --->to provide a sub-system, that can 
+         manage all the devices, in the hw 
+         platform of the current system 
+         -->earlier, there was no such 
+          unified model/sub-system to 
+          manage all the devices/types 
+
+     --->clearly differentiate and provide
+         futher support to different bus 
+         technologies
+
+     --->there is a clear differentiation 
+         between device management and 
+         driver management, in this model 
+
+     --->the device management is tightly 
+         coupled, with BSP layer of the 
+         kernel 
+
+     --->support automatic driver binding 
+         to compatible devices 
+
+     --->along with sysfs layer, provide 
+         the complete layout/matrix of 
+         all the devices and their interconnections
+         to user-space 
+         -->this information is useful to 
+            developers and administrators
+         --->specifically, useful for 
+             embedded developers 
+
+
+
+
