@@ -97,4 +97,250 @@ As we can see, the kobject structures are in a hierarchy : an object has a paren
 
 
 
+- the "device core/model/frame-works" are built 
+  around several system objects - to start with, 
+  we will deal with kobject{}s, kset{}s, attributes, 
+  and related other low-level system objects
+
+   --->in most cases, several kernel modules, 
+       like IO modules/driver modules work
+       , along with core device model to provide
+       complete services 
+
+
+
+   -->device-model and sysfs work together to get 
+      the actual job done, for device management 
+      and driver management
+
+- sysfs is similar to procfs, but designed and
+  implemented, for the "device core/device model
+  of the kernel" - it may be used, for other 
+  requirements, but it mainly services the 
+  device model/device core - main support is 
+  , for IO /buses/devices/drivers 
+
+- sysfs is a non-persistent file system 
+  resident, in the kernel space and uses
+  system memory - it uses "several system objects
+  and call backs" - it mainly maintains 
+  pseudo directories/files,which are not 
+  used to manage application data, but 
+  system data of "device model/device core"
+  and their system objects 
+  - even in this case, actual persistent 
+  data is not maintained, but system data
+  is fetched dynamically from the system 
+  objects of device core/device model,"using 
+  appropriate call backs of sysfs /device model/
+  device drivers /other components"  
+
+    -->sysfs' directories and files are used 
+       to represent hw devices /drivers and 
+       related hw information and hw attributes - 
+       does not 
+       deal, with application data 
+
+- sysfs is known as a pseudo file system 
+
+--->in this big-picture, typically, kernel 
+    modules will be linked to device core 
+    model and in turn, the device model 
+    will be linked to sysfs - from sysfs, 
+    there is a link established to user-space
+
+    --->all these links/interconnections 
+        require registrations 
+    --->in addition, for certain requirements, 
+        kernel modules/components can also 
+        link directly to sysfs and use its 
+        services - still, the support of 
+        device core model is needed
+
+
+  ->as part of the low-level features/
+    frame-work, kobject{}s are used - kobject{}s
+    are system objects, like pds  
+
+
+  ->every device controller instance used in the 
+    system or every driver instance 
+    used in the system or every hw 
+    bus controller instance used in the sytem 
+    must be represent by a struct 
+    kobject{} at the low-level of the
+    device model/device core
+
+->for each device instance/driver 
+    instance/or another entity, a 
+    kobject is allocated/initialized
+    /registered with the device core/
+    device model of the kernel, as per the 
+    rules 
+    --->once registered, our kobject{} 
+        instance will be added to the 
+        device model's frame-work  
+
+  
+  ->a kobject will do the following 
+    services to a device/driver instance or 
+    any other entity :
+    ->it is an abstract kernel object 
+      which is used to represent a 
+      device instance or driver instance, 
+      in the device model - without a 
+      kobject, we cannot register our 
+      device/driver, in device-model
+
+-->a kobject  enables the device model to 
+      manage a  device instance
+
+
+  -->a kobject  enables the device model to 
+      manage a  device instance
+
+    ->it enables the device model to 
+      manage the resource usage count 
+      of the device instance or 
+      another entity  
+       - there will be a counter, in the kobject
+       - this will be incremented
+         by 1, if the device instance
+         is in use by drivers, for instance  
+       - if no driver or another module 
+         is using this device instance, 
+         the resource usage count will 
+         be decremented to 0 
+       - if the resource usage counter's
+         value is 0, this device instance
+         can be freed
+       - if not, it cannot be freed 
+
+   - it enables maintaining devices, 
+      in a hierarchy, as per hw hierarchy
+     -->one of the objectives is to describe
+        hw topology
+     -->this set-up/description is 
+        replicated, in sysfs - sysfs
+        will use kobjects/their set-up 
+        and hierarchy to actually, replicate
+        listing of devices/their topology
+ 
+    - it enables linking /connecting 
+      a device instance to sysfs and 
+      utilize sysfs services, for the 
+      the device instance 
+ 
+ 
+   ->as mentioned above struct attribute{} 
+     is another low-level abstract object 
+     of the device-model , but it is 
+     productive, along with "kobject{}"/
+     sysfs services/other device model objects/
+     call backs 
+ 
+
+-->using sysfs_create_group() will be setting up 
+        several attributes and in addition, after the 
+        registration of attributes, sysfs regular files 
+        are set-up and exported to user-space
+     
+     
+      -->using sysfs_create_group() or sysfs_create_file()
+             we can set-up several attributes/or single 
+             attribute, for our requirements 
+          -->these are sysfs system APIs, which may use
+             other high-level services, if needed
+     -->attributes are present, in system-space, as part 
+        of the custom module and device model, but the 
+        sysfs files are exported and visible to user-space
+    
+
+-->for each kobject{}, in the device-model, one 
+       sysfs_dirent{} or another similar object will be 
+       created and registered, with sysfs - 
+       this sysfs_dirent{} 
+       will represent a directory file, in the sysfs
+
+--->ideally, these struct attribute{} objects are part 
+    of a kobject - we will understand more of these, 
+    when we connect to devices/drivers/other entities
+
+    -->all these sysfs regular files of attributes of a kobject
+       are maintained, under the sysfs directory of kobject
+       --->hierarchy and parent-child relationship is 
+           maintained
+
+    -->in a typical scenario, if we are managing a kobject{} 
+       and we are invoking kobject_put(), the kobject{}'s 
+       usage counter will be decremented - if the usage 
+       counter drop's to 0, a destructor will be invoked, in the 
+       background - this destructor will do the clean-up of 
+       kobject and related objects/resources  
+
+         --->each kobject{} maintains an usage counter
+             field 
+         --->if it is +ve, the kobject is busy and 
+             corresponding container object/high-level
+             object is also busy - effectively, 
+             the real resource 
+             managed, by the container object 
+             is busy 
+
+         --->if the usage counter drops to 0, the 
+             container object and the real-resource 
+             are free to be freed/deleted  
+   ->similarly, there will be a kobj_type{} 
+     object associated, with a kobject{} 
+     and will provide certain default 
+     attributes and call backs - these 
+     call backs will be used along with 
+     sysfs services/call backs
+
+  ->there is also a kset{} abstract low-level 
+     object, which is used to maintain 
+     hierarchy of a list of kobjects, which 
+     are related - every kset{} has a built-in 
+     kobject{} - we will see the utility of 
+     kset{}
+     
+     
+     -->in kobject_example1.c, we are creating 
+      , initializing, and registering a 
+      kobject{} explicitly, with the device model 
+      - in this case,we are registering our 
+      kobject, with a parent kobject, which is 
+      a standard system kobject{} - we may 
+      register with a kobject{} of a kset{} or
+      another kobject{} of another system object 
+      or private object{}
+   
+
+      we may 
+      deal with kobject{} directly or indirectly{}
+      - in the case of indirect, our module 
+      will be using services of another IO module
+      ,which will interact with device model/
+      kobject{}s - we may still deal, with kobject
+      , if needed  
+       - we will come across such scenarios and 
+         modules/coding, in other device drivers
+
+      ->typically, for each kobject{} registered, with 
+        the kernel, there will be a corresponding 
+        "sysfs directory file" and "a sysfs system object 
+        is set-up" - sysfs_dirent{} - in the user-space 
+        it will be visible, as a directory, in a "sysfs
+        pseudo file system"
+
+->when attributes of a kobject are registered, 
+        using different system APIs of sysfs,several 
+        sysfs regular files are created, under the 
+        sysfs director file of the corresponding 
+        kobject{} - in addition, for each sysfs regular 
+        file created, there will be a sysfs_dirent{} 
+        object created and maintained under sysfs_dirent{}
+        of corresponding kobject  
+
+
 
